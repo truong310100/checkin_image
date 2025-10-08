@@ -2,6 +2,7 @@
 Face Attendance System - Main Application
 """
 from flask import Flask
+from flask_cors import CORS
 from config.config import config
 from config.database import init_db, create_tables
 from controllers.routes import register_blueprints
@@ -14,6 +15,9 @@ def create_app(config_name=None):
     
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    
+    # Enable CORS for all routes
+    CORS(app, origins=['http://localhost:3000'])
     
     # Initialize database
     init_db(app)
