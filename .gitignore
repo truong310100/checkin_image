@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Database
+*.db
+*.sqlite3
+face_attendance.db
+
+# Images
+face_images/
+
+# Jupyter Notebooks
+*.ipynb
+
+# VS Code
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Backup files
+*.bak
+*.swp
+*.swo
+
+# Others
+*.~
+*.tmp
+
+# Environment variables
+.env

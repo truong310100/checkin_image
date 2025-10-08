@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch sử điểm danh {{ user.name }} - Hệ thống điểm danh khuôn mặt{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-info text-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Lịch sử điểm danh - {{ user.name }}
+                    </h4>
+                    <a href="{{ url_for('history') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Quay lại
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Thông tin sinh viên -->
+                <div class="p-4 border-bottom bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            {% if user.image_path %}
+                                <img src="{{ url_for('static', filename='../face_images/' + user.image_path.split('/')[-1]) }}" 
+                                     class="rounded-circle border border-3 border-primary" 
+                                     style="width: 60px; height: 60px; object-fit: cover;"
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNGM0Y0RjYiLz4KPHBhdGggZD0iTTMwIDE1QzI1LjAyOTQgMTUgMjEgMTkuMDI5NCAyMSAyNEMyMSAyOC45NzA2IDI1LjAyOTQgMzMgMzAgMzNDMzQuOTcwNiAzMyAzOSAyOC45NzA2IDM5IDI0QzM5IDE5LjAyOTQgMzQuOTcwNiAxNSAzMCAxNVoiIGZpbGw9IiM5Q0E4QkEiLz4KPHBhdGggZD0iTTE1IDQ1QzE1IDM3LjU0NDEgMjEuODM4MiAzMS41IDMwIDMxLjVDMzguMTYxOCAzMS41IDQ1IDM3LjU0NDEgNDUgNDVWNjBIMTVWNDVaIiBmaWxsPSIjOUNBOEJBIi8+Cjwvc3ZnPgo='">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-user text-white fa-lg"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-1 text-primary">{{ user.name }}</h5>
+                            <p class="mb-0 text-muted">
+                                <i class="fas fa-id-card me-1"></i>{{ user.employee_id }} • 
+                                <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-center">
+                                <div class="h4 text-info mb-0">{{ attendances|length }}</div>
+                                <small class="text-muted">Ngày làm việc</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảng lịch sử -->
+                {% if attendances %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">
+                                        <i class="fas fa-calendar me-1"></i>Ngày
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-sign-in-alt me-1"></i>Check-in
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-sign-out-alt me-1"></i>Check-out
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-clock me-1"></i>Tổng thời gian
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-info-circle me-1"></i>Trạng thái
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance in attendances %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-medium">{{ attendance.date.strftime('%d/%m/%Y') }}</div>
+                                        <small class="text-muted">{{ attendance.date.strftime('%A') }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if attendance.check_in %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-sign-in-alt me-1"></i>
+                                                {{ attendance.check_in.strftime('%H:%M:%S') }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">--:--:--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if attendance.check_out %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-sign-out-alt me-1"></i>
+                                                {{ attendance.check_out.strftime('%H:%M:%S') }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">--:--:--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if attendance.check_in and attendance.check_out %}
+                                            {% set work_duration = attendance.check_out - attendance.check_in %}
+                                            {% set hours = work_duration.seconds // 3600 %}
+                                            {% set minutes = (work_duration.seconds % 3600) // 60 %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ hours }}h {{ minutes }}p
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if attendance.check_in and attendance.check_out %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Hoàn thành
+                                            </span>
+                                        {% elif attendance.check_in %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-play me-1"></i>Đang làm việc
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-minus me-1"></i>Chưa có dữ liệu
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có lịch sử điểm danh</h5>
+                        <p class="text-muted">{{ user.name }} chưa thực hiện điểm danh lần nào</p>
+                        <a href="{{ url_for('checkin') }}" class="btn btn-primary">
+                            <i class="fas fa-clock me-2"></i>Điểm danh ngay
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if attendances %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <h6><i class="fas fa-chart-bar text-primary me-2"></i>Thống kê tháng này:</h6>
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="h4 text-success mb-0">{{ attendances|length }}</div>
+                        <small class="text-muted">Ngày làm việc</small>
+                    </div>
+                    <div class="col-md-3">
+                        {% set complete_days = attendances|selectattr('check_out')|list|length %}
+                        <div class="h4 text-info mb-0">{{ complete_days }}</div>
+                        <small class="text-muted">Ngày hoàn thành</small>
+                    </div>
+                    <div class="col-md-3">
+                        {% set incomplete_days = attendances|length - complete_days %}
+                        <div class="h4 text-warning mb-0">{{ incomplete_days }}</div>
+                        <small class="text-muted">Chưa check-out</small>
+                    </div>
+                    <div class="col-md-3">
+                        {% if complete_days > 0 %}
+                            {% set completion_rate = (complete_days / attendances|length * 100)|round(1) %}
+                            <div class="h4 text-primary mb-0">{{ completion_rate }}%</div>
+                        {% else %}
+                            <div class="h4 text-muted mb-0">0%</div>
+                        {% endif %}
+                        <small class="text-muted">Tỷ lệ hoàn thành</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

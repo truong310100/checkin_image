@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch sử điểm danh - Hệ thống điểm danh khuôn mặt{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-info text-white py-3">
+                <h4 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Danh sách sinh viên
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                {% if users %}
+                    <div class="row g-3">
+                        {% for user in users %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-1">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        {% if user.image_path %}
+                                            <img src="{{ url_for('static', filename='../face_images/' + user.image_path.split('/')[-1]) }}" 
+                                                 class="rounded-circle border border-3 border-primary" 
+                                                 style="width: 80px; height: 80px; object-fit: cover;"
+                                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiNGM0Y0RjYiLz4KPHBhdGggZD0iTTQwIDIwQzMzLjM3MjYgMjAgMjggMjUuMzcyNiAyOCAzMkMyOCAzOC42Mjc0IDMzLjM3MjYgNDQgNDAgNDRDNDYuNjI3NCA0NCA1MiAzOC42Mjc0IDUyIDMyQzUyIDI1LjM3MjYgNDYuNjI3NCAyMCA0MCAyMFoiIGZpbGw9IiM5Q0E4QkEiLz4KPHBhdGggZD0iTTIwIDYwQzIwIDUwLjA1ODkgMjkuMTE3NiA0MiA0MCA0MkM1MC44ODI0IDQyIDYwIDUwLjA1ODkgNjAgNjBWODBIMjBWNjBaIiBmaWxsPSIjOUNBOEJBIi8+Cjwvc3ZnPgo='">
+                                        {% else %}
+                                            <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                <i class="fas fa-user text-white fa-2x"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <h6 class="card-title text-primary">{{ user.name }}</h6>
+                                    <p class="card-text text-muted small mb-2">
+                                        <i class="fas fa-id-card me-1"></i>{{ user.employee_id }}
+                                    </p>
+                                    <p class="card-text text-muted small mb-3">
+                                        <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                                    </p>
+                                    <a href="{{ url_for('user_history', user_id=user.id) }}" class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-calendar-alt me-1"></i>Xem lịch sử
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có sinh viên nào đăng ký</h5>
+                        <p class="text-muted">Hãy đăng ký thông tin để bắt đầu sử dụng hệ thống điểm danh</p>
+                        <a href="{{ url_for('register') }}" class="btn btn-success">
+                            <i class="fas fa-user-plus me-2"></i>Đăng ký ngay
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
