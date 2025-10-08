@@ -12,7 +12,7 @@
                         <i class="fas fa-calendar-alt me-2"></i>
                         Lịch sử điểm danh - {{ user.name }}
                     </h4>
-                    <a href="{{ url_for('history') }}" class="btn btn-light btn-sm">
+                    <a href="{{ url_for('user.history') }}" class="btn btn-light btn-sm">
                         <i class="fas fa-arrow-left me-1"></i>Quay lại
                     </a>
                 </div>
@@ -137,7 +137,7 @@
                         <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">Chưa có lịch sử điểm danh</h5>
                         <p class="text-muted">{{ user.name }} chưa thực hiện điểm danh lần nào</p>
-                        <a href="{{ url_for('checkin') }}" class="btn btn-primary">
+                        <a href="{{ url_for('attendance.checkin') }}" class="btn btn-primary">
                             <i class="fas fa-clock me-2"></i>Điểm danh ngay
                         </a>
                     </div>

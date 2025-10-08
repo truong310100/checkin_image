@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Trang chủ - Hệ thống điểm danh khuôn mặt{% endblock %}
+{% block title %}Trang chủ -                 <a href="{{ url_for('user.history') }}" class="btn btn-info btn-lg text-white">
+                    <i class="fas fa-history me-2"></i>Xem lịch sử
+                </a>thống điểm danh khuôn mặt{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -24,7 +26,7 @@
                 </div>
                 <h5 class="card-title">Đăng ký thông tin</h5>
                 <p class="card-text text-muted">Đăng ký thông tin cá nhân và chụp ảnh khuôn mặt để tạo hồ sơ trong hệ thống</p>
-                <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">
+                <a href="{{ url_for('user.register') }}" class="btn btn-success btn-lg">
                     <i class="fas fa-user-plus me-2"></i>Đăng ký ngay
                 </a>
             </div>
@@ -39,7 +41,7 @@
                 </div>
                 <h5 class="card-title">Điểm danh</h5>
                 <p class="card-text text-muted">Sử dụng webcam để nhận diện khuôn mặt và ghi nhận thời gian check-in/check-out</p>
-                <a href="{{ url_for('checkin') }}" class="btn btn-primary btn-lg">
+                <a href="{{ url_for('attendance.checkin') }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-clock me-2"></i>Điểm danh
                 </a>
             </div>
@@ -54,7 +56,7 @@
                 </div>
                 <h5 class="card-title">Lịch sử điểm danh</h5>
                 <p class="card-text text-muted">Xem lại lịch sử điểm danh của tất cả sinh viên trong hệ thống</p>
-                <a href="{{ url_for('history') }}" class="btn btn-info btn-lg">
+                <a href="{{ url_for('user.history') }}" class="btn btn-info btn-lg">
                     <i class="fas fa-history me-2"></i>Xem lịch sử
                 </a>
             </div>

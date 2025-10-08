@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('image_data', imageData);
         
-        fetch('/checkin', {
+        fetch('/attendance/checkin', {
             method: 'POST',
             body: formData
         })
