@@ -40,7 +40,6 @@ const Register = () => {
     try {
       setError('');
       setIsCameraActive(false); // Reset state first
-      console.log('Starting camera...');
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -48,35 +47,17 @@ const Register = () => {
           height: { ideal: 480 }
         } 
       });
-      console.log('Camera stream:', mediaStream);
-      console.log('Video tracks:', mediaStream.getVideoTracks());
-      
       setStream(mediaStream);
-      
-      // Set camera active FIRST so UI shows video element
       setIsCameraActive(true);
-      
-      // Use setTimeout to ensure DOM is updated
       setTimeout(() => {
         if (videoRef.current) {
-          console.log('Video element found, setting srcObject');
           videoRef.current.srcObject = mediaStream;
           
-          // Wait for video metadata to load
           const handleLoadedMetadata = () => {
-            console.log('Video metadata loaded');
-            console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
-            setForceUpdate(prev => prev + 1); // Force re-render
+            setForceUpdate(prev => prev + 1); 
           };
 
           videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
-          
-          // Force video to play
-          videoRef.current.play().then(() => {
-            console.log('Video play successful');
-          }).catch((playError) => {
-            console.log('Video play error:', playError);
-          });
         } else {
           console.error('Video element not found after setting camera active');
         }
@@ -89,22 +70,6 @@ const Register = () => {
     }
   };
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => {
-        track.stop();
-        console.log('Stopped track:', track);
-      });
-      setStream(null);
-    }
-    
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject = null;
-    }
-    
-    setIsCameraActive(false);
-    console.log('Camera stopped');
-  };
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current && videoRef.current.readyState === 4) {
@@ -121,7 +86,6 @@ const Register = () => {
       // Convert to base64 image
       const imageDataUrl = canvasRef.current.toDataURL('image/jpeg', 0.8);
       setCapturedImage(imageDataUrl);
-      stopCamera();
     } else {
       setError('Camera chưa sẵn sàng. Vui lòng thử lại sau vài giây.');
     }
@@ -173,12 +137,11 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-            👤 Đăng ký tài khoản
-          </h1>
+    <div>
+      <div className="bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">
+          👤 Đăng ký tài khoản
+        </h1>
 
           {error && (
             <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -257,7 +220,7 @@ const Register = () => {
                           onClick={startCamera}
                           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
                         >
-                          📸 Bật camera
+                          Bật camera
                         </button>
                       </div>
                     ) : (
@@ -286,21 +249,7 @@ const Register = () => {
                             onClick={captureImage}
                             className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
                           >
-                            📸 Chụp ảnh
-                          </button>
-                          <button
-                            type="button"
-                            onClick={stopCamera}
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                          >
-                            ❌ Đóng camera
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setForceUpdate(prev => prev + 1)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm"
-                          >
-                            🔄 Refresh
+                            Chụp ảnh
                           </button>
                         </div>
                       </div>
@@ -347,7 +296,6 @@ const Register = () => {
 
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
-      </div>
     </div>
   );
 };

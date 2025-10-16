@@ -28,7 +28,6 @@ const Checkin = () => {
     try {
       setError('');
       setIsCameraActive(false); // Reset state first
-      console.log('Starting camera...');
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -36,35 +35,17 @@ const Checkin = () => {
           height: { ideal: 480 }
         } 
       });
-      console.log('Camera stream:', mediaStream);
-      console.log('Video tracks:', mediaStream.getVideoTracks());
       
       setStream(mediaStream);
-      
-      // Set camera active FIRST so UI shows video element
       setIsCameraActive(true);
-      
-      // Use setTimeout to ensure DOM is updated
       setTimeout(() => {
         if (videoRef.current) {
-          console.log('Video element found, setting srcObject');
           videoRef.current.srcObject = mediaStream;
-          
-          // Wait for video metadata to load
           const handleLoadedMetadata = () => {
-            console.log('Video metadata loaded');
-            console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
             setForceUpdate(prev => prev + 1); // Force re-render
           };
 
           videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
-          
-          // Force video to play
-          videoRef.current.play().then(() => {
-            console.log('Video play successful');
-          }).catch((playError) => {
-            console.log('Video play error:', playError);
-          });
         } else {
           console.error('Video element not found after setting camera active');
         }
@@ -81,7 +62,6 @@ const Checkin = () => {
     if (stream) {
       stream.getTracks().forEach(track => {
         track.stop();
-        console.log('Stopped track:', track);
       });
       setStream(null);
     }
@@ -91,7 +71,6 @@ const Checkin = () => {
     }
     
     setIsCameraActive(false);
-    console.log('Camera stopped');
   };
 
   const captureAndProcess = async () => {
@@ -128,14 +107,14 @@ const Checkin = () => {
       const response = await apiService.checkin(imageDataUrl);
       
       if (response.success) {
-        setSuccess('Điểm danh thành công!');
+        setSuccess('Checkin thành công!');
         setResult(response);
         stopCamera();
       } else {
-        setError(response.message || 'Điểm danh thất bại!');
+        setError(response.message || 'Checkin thất bại!');
       }
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi điểm danh!');
+      setError(err.message || 'Có lỗi xảy ra khi checkin!');
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +138,7 @@ const Checkin = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-            Điểm danh
+            Checkin
           </h1>
 
           {error && (
@@ -215,7 +194,7 @@ const Checkin = () => {
                         disabled={isLoading}
                         className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors"
                       >
-                        {isLoading ? 'Đang xử lý...' : 'Điểm danh'}
+                        {isLoading ? 'Đang xử lý...' : 'Checkin'}
                       </button>
                       
                       <button
@@ -243,7 +222,7 @@ const Checkin = () => {
               
               <div className="bg-green-50 rounded-lg p-6 mb-6">
                 <h3 className="text-2xl font-bold text-green-800 mb-4">
-                  Điểm danh thành công!
+                  Checkin thành công!
                 </h3>
                 
                 <div className="space-y-3 text-left max-w-md mx-auto">
@@ -296,7 +275,7 @@ const Checkin = () => {
                   onClick={resetCheckin}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
                 >
-                 Điểm danh tiếp
+                 Checkin tiếp
                 </button>
                 
                 <button

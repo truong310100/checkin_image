@@ -1,25 +1,64 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
+import { MsalProvider } from '@azure/msal-react';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { msalConfig } from './utils/azure';
+
+// User Components
+import UserCheckin from './components/user/UserCheckin';
+
+// Admin Components
+import AdminLogin from './components/admin/AdminLogin';
+import AdminLayout from './components/admin/AdminLayout';
+import ProtectedRoute from './components/admin/ProtectedRoute';
 import Register from './components/Register';
-import Checkin from './components/Checkin';
 import History from './components/History';
 import UserHistory from './components/UserHistory';
+
 import './App.css';
+
+const msalInstance = new PublicClientApplication(msalConfig);
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/checkin" element={<Checkin />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/user-history/:userId" element={<UserHistory />} />
-        </Routes>
-      </div>
-    </Router>
+    <MsalProvider instance={msalInstance}>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* User Routes - Public */}
+            <Route path="/" element={<UserCheckin />} />
+            
+            {/* Admin Routes - Protected */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminLogin />} />
+            
+            <Route path="/admin/register" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <Register />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/history" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <History />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/user-history/:userId" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <UserHistory />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </MsalProvider>
   );
 }
 

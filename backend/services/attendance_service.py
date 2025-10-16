@@ -1,12 +1,26 @@
 """
 Attendance service
 """
+import base64
+import os
 from datetime import datetime, date
 from models import Attendance
 from config.database import db
 
 class AttendanceService:
     """Service for attendance operations"""
+    
+    @staticmethod
+    def _get_user_image_base64(image_path):
+        """Convert user image to base64 string"""
+        try:
+            if image_path and os.path.exists(image_path):
+                with open(image_path, 'rb') as image_file:
+                    image_data = image_file.read()
+                    return base64.b64encode(image_data).decode('utf-8')
+        except Exception as e:
+            print(f"Error reading image {image_path}: {e}")
+        return None
     
     @staticmethod
     def process_checkin(user):
@@ -27,12 +41,15 @@ class AttendanceService:
                 )
                 db.session.add(attendance)
                 db.session.commit()
+                user_image_base64 = AttendanceService._get_user_image_base64(user.image_path)
                 
                 return {
                     'success': True,
                     'message': f'Chào {user.name}! Check-in thành công lúc {attendance.check_in.strftime("%H:%M:%S")}',
                     'type': 'check_in',
                     'user': user.name,
+                    'user_image': user_image_base64,
+                    'employee_id': user.employee_id,
                     'time': attendance.check_in.strftime("%H:%M:%S")
                 }, None
             
@@ -49,17 +66,20 @@ class AttendanceService:
                 else:
                     message = f'Tạm biệt {user.name}! Check-out thành công lúc {attendance.check_out.strftime("%H:%M:%S")}'
                 
+                user_image_base64 = AttendanceService._get_user_image_base64(user.image_path)
                 return {
                     'success': True,
                     'message': message,
                     'type': 'check_out',
                     'user': user.name,
+                    'user_image': user_image_base64,
+                    'employee_id': user.employee_id,
                     'time': attendance.check_out.strftime("%H:%M:%S"),
                     'is_update': old_checkout is not None
                 }, None
                 
         except Exception as e:
-            return None, f"Lỗi xử lý điểm danh: {str(e)}"
+            return None, f"Lỗi xử lý Checkin: {str(e)}"
     
     @staticmethod
     def get_user_attendances(user_id, limit=None):
