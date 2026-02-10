@@ -9,6 +9,7 @@ const Checkin = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [result, setResult] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [stream, setStream] = useState(null);
@@ -19,9 +20,6 @@ const Checkin = () => {
   const [faceDetected, setFaceDetected] = useState(false);
   const [showResultOverlay, setShowResultOverlay] = useState(false);
   const detectionIntervalRef = useRef(null);
-  const resultTimeoutRef = useRef(null);
-  const lastScanTime = useRef(0);
-
   // Load face-api models
   useEffect(() => {
     const loadModels = async () => {
@@ -41,33 +39,20 @@ const Checkin = () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+      if (autoScanIntervalRef.current) {
+        clearInterval(autoScanIntervalRef.current);
+      }
       if (detectionIntervalRef.current) {
         clearInterval(detectionIntervalRef.current);
       }
       if (resultTimeoutRef.current) {
-        clearTimeout(resultTimeoutRef.current);
+        clearTimeout(resultTimeoutef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [stream]);
-
-  useEffect(() => {
-    const autoStartCamera = async () => {
-      if (!isCameraActive && !stream) {
-        try {
-          // Wait a bit for component to mount
-          await new Promise(resolve => setTimeout(resolve, 200));
-          await startCamera();
-        } catch (error) {
-          console.log('Auto start camera failed:', error);
-        }
-      }
-    };
-
-    const timer = setTimeout(autoStartCamera, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Start face detection when camera is active
+  }, Start face detection when camera is active
   useEffect(() => {
     if (isCameraActive && modelsLoaded && videoRef.current && overlayCanvasRef.current) {
       startFaceDetection();
@@ -137,37 +122,7 @@ const Checkin = () => {
         ctx.lineTo(box.x + box.width, box.y);
         ctx.lineTo(box.x + box.width, box.y + cornerLength);
         ctx.stroke();
-        
-        // Bottom-left
-        ctx.beginPath();
-        ctx.moveTo(box.x, box.y + box.height - cornerLength);
-        ctx.lineTo(box.x, box.y + box.height);
-        ctx.lineTo(box.x + cornerLength, box.y + box.height);
-        ctx.stroke();
-        
-        // Bottom-right
-        ctx.beginPath();
-        ctx.moveTo(box.x + box.width - cornerLength, box.y + box.height);
-        ctx.lineTo(box.x + box.width, box.y + box.height);
-        ctx.lineTo(box.x + box.width, box.y + box.height - cornerLength);
-        ctx.stroke();
-
-        // Auto checkin when face detected (throttled to every 2 seconds)
-        const now = Date.now();
-        if (autoScanEnabled && !isScanning && !showResultOverlay && (now - lastScanTime.current > 2000)) {
-          lastScanTime.current = now;
-          performAutoScan();
-        }
-      } else {
-        setFaceDetected(false);
-      }
-    } catch (err) {
-      console.error('Face detection error:', err);
-    }
-  };
-
-  const performAutoScan = async () => {
-    if (!videoRef.current || !canvasRef.current || isScanning || showResultOverlay) {
+        isScanning || showResultOverlay) {
       return;
     }
 
@@ -189,6 +144,7 @@ const Checkin = () => {
       const response = await apiService.checkin(imageDataUrl);
       if (response.success) {
         setCapturedImageUrl(imageDataUrl);
+        setSuccess('Checkin thành công!');
         setResult(response);
         setShowResultOverlay(true);
         
@@ -198,7 +154,53 @@ const Checkin = () => {
         }
         resultTimeoutRef.current = setTimeout(() => {
           hideResultOverlay();
-        }, 2000);
+        }, 5000
+    // First scan after 3 seconds
+    setTimeout(() => {
+      performAutoScan();
+    }, 3000);
+  };
+
+  const stopAutoScan = () => {
+    if (autoScanIntervalRef.current) {
+      clearInterval(autoScanIntervalRef.current);
+      autoScanIntervalRef.1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
+      setStream(mediaStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        videoRef.current.onloadedmetadata = () => {
+          setIsCameraActive(true);
+          
+          // Set canvas dimensions to match video
+          if (overlayCanvasRef.current) {
+            overlayCanvasRef.current.width = videoRef.current.videoWidth;
+            overlayCanvasRef.current.height = videoRef.current.videoHeight;
+          }
+        };
+      }
+
+    setIsScanning(true);
+
+    try {
+      const context = canvasRef.current.getContext('2d');
+      const video = videoRef.current;
+      canvasRef.current.width = video.videoWidth || video.clientWidth;
+      canvasRef.current.height = video.videoHeight || video.clientHeight;
+      context.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height);
+      const imageDataUrl = canvasRef.current.toDataURL('image/jpeg', 0.8);
+      
+      // Try to checkin
+      const response = await apiService.checkin(imageDataUrl);
+      if (response.success) {
+        setCapturedImageUrl(imageDataUrl);
+        setSuccess('Checkin thành công!');
+        setResult(response);
+        stopAutoScan();
       }
       // If failed, just continue scanning (no error shown)
     } catch (err) {
@@ -212,91 +214,32 @@ const Checkin = () => {
   const startCamera = async () => {
     try {
       setError('');
-      setIsCameraActive(false);
-      console.log('Requesting camera access...');
-      
-      // Check if video element exists
-      if (!videoRef.current) {
-        console.error('✗ videoRef.current is null! Waiting...');
-        await new Promise(resolve => setTimeout(resolve, 300));
-        if (!videoRef.current) {
-          setError('Video element không sẵn sàng. Vui lòng thử lại.');
-          return;
-        }
-      }
+      setIsCameraActive(false); 
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 640 },
+          height: { ideal: 480 }
         } 
       });
       
-      console.log('Camera stream obtained:', mediaStream);
       setStream(mediaStream);
-      
-      const video = videoRef.current;
-      console.log('✓ Video element found:', video);
-      
-      video.srcObject = mediaStream;
-      console.log('Setting srcObject, readyState:', video.readyState);
-      
-      // Function to activate camera
-      const activateCamera = () => {
-        if (video.videoWidth > 0 && video.videoHeight > 0) {
-          console.log('✓ Activating camera, dimensions:', video.videoWidth, 'x', video.videoHeight);
-          setIsCameraActive(true);
-          
-          // Set canvas dimensions to match video
-          if (overlayCanvasRef.current) {
-            overlayCanvasRef.current.width = video.videoWidth;
-            overlayCanvasRef.current.height = video.videoHeight;
-            console.log('✓ Canvas set to:', video.videoWidth, 'x', video.videoHeight);
-          }
-          return true;
-        }
-        return false;
-      };
-      
-      // Wait for metadata and play
-      console.log('Waiting for video metadata...');
-      
-      // Try to play
-      try {
-        await video.play();
-        console.log('✓ Video play() successful, readyState:', video.readyState);
-      } catch (err) {
-        console.log('Play attempt:', err.message);
-      }
-      
-      // Poll until video dimensions are available
-      let attempts = 0;
-      const maxAttempts = 30;
-      
-      const checkInterval = setInterval(() => {
-        attempts++;
-        console.log(`Attempt ${attempts}: readyState=${video.readyState}, dimensions=${video.videoWidth}x${video.videoHeight}`);
-        
-        if (activateCamera()) {
-          clearInterval(checkInterval);
-          console.log('✓ Camera activated successfully!');
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkInterval);
-          console.error('✗ Failed to activate camera after', maxAttempts, 'attempts');
-          setError('Camera không thể khởi động. Vui lòng thử lại.');
-          setIsCameraActive(false);
+      setIsCameraActive(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          const handleLoadedMetadata = () => {
+            setForceUpdate(prev => prev + 1); 
+          };
+          videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
+        } else {
+          console.error('Video element not found after setting camera active');
         }
       }, 100);
       
     } catch (err) {
       console.error('Error accessing camera:', err);
-      if (err.name === 'NotAllowedError') {
-        setError('Bạn đã từ chối quyền truy cập camera. Vui lòng cấp quyền trong cài đặt trình duyệt.');
-      } else if (err.name === 'NotFoundError') {
-        setError('Không tìm thấy camera. Vui lòng kiểm tra camera của bạn.');
-      } else {
-        setError('Không thể truy cập camera: ' + err.message);
-      }
+      setError('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
       setIsCameraActive(false);
     }
   };
@@ -314,6 +257,7 @@ const Checkin = () => {
 
     setIsLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const context = canvasRef.current.getContext('2d');
@@ -325,34 +269,27 @@ const Checkin = () => {
       setCapturedImageUrl(imageDataUrl);
       const response = await apiService.checkin(imageDataUrl);
       if (response.success) {
+        setSuccess('Checkin thành công!');
         setResult(response);
-        setShowResultOverlay(true);
-        
-        // Auto hide after 2 seconds
-        if (resultTimeoutRef.current) {
-          clearTimeout(resultTimeoutRef.current);
-        }
-        resultTimeoutRef.current = setTimeout(() => {
-          hideResultOverlay();
-        }, 2000);
       } else {
-        setError(response.message || 'Checkin thất bại!');
-      }
-    } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi checkin!');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const hideResultOverlay = () => {
+        hideResultOverlay = () => {
     setShowResultOverlay(false);
     setResult(null);
+    setSuccess('');
     setCapturedImageUrl(null);
   };
 
   const toggleAutoScan = () => {
+    setAutoScanEnabled(!autoScanEnabled);etCapturedImageUrl(null);
+    setAutoScanEnabled(true);
+    startCamera();
+  };
+
+  const toggleAutoScan = () => {
     setAutoScanEnabled(!autoScanEnabled);
+    if (!autoScanEnabled) {
+      setError('');
+    }
   };
 
   const formatTime = (timeString) => {
@@ -372,25 +309,15 @@ const Checkin = () => {
 
       {/* Camera View */}
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 relative bg-black overflow-hidden">
-            {/* Loading Overlay */}
-            {!isCameraActive && (
-              <div className="absolute inset-0 flex items-center justify-center z-30 bg-gray-900">
-                <div className="text-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
-                  <p className="text-white">{modelsLoaded ? 'Đang khởi động camera...' : 'Đang tải models...'}</p>
-                  {modelsLoaded && !isCameraActive && (
-                    <button
-                      onClick={startCamera}
-                      className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full transition-all"
-                    >
-                      Bấm để bật camera
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
+        {!isCameraActive ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-white">{modelsLoaded ? 'Đang khởi động camera...' : 'Đang tải models...'}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 relative bg-black overflow-hidden">
             {/* Video và Overlay Canvas Container */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
@@ -401,6 +328,7 @@ const Checkin = () => {
                   muted
                   className="w-full h-full object-contain"
                 />
+                {/* Face Detection Overlay Canvas */}
                 <canvas
                   ref={overlayCanvasRef}
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full object-contain pointer-events-none"
@@ -410,6 +338,7 @@ const Checkin = () => {
 
             {/* Status Indicators */}
             <div className="absolute top-4 left-4 z-10 space-y-2">
+              {/* Face Detection Status */}
               <div className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm ${
                 faceDetected ? 'bg-green-500/80' : 'bg-gray-800/80'
               }`}>
@@ -419,6 +348,7 @@ const Checkin = () => {
                 </span>
               </div>
 
+              {/* Auto Scan Status */}
               {autoScanEnabled && (
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/80 backdrop-blur-sm">
                   {isScanning ? (
@@ -436,6 +366,7 @@ const Checkin = () => {
               )}
             </div>
 
+            {/* Auto Scan Toggle */}
             <button
               onClick={toggleAutoScan}
               className="absolute top-4 right-4 z-10 bg-black/70 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/90 transition-all"
@@ -453,42 +384,52 @@ const Checkin = () => {
               )}
             </button>
 
+            {/* Result Overlay */}
             {showResultOverlay && result && (
-              <div className="absolute inset-0 flex items-end md:items-center justify-center z-20 bg-black/10">
-                <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-t-3xl md:rounded-3xl shadow-2xl max-w-xl w-full md:max-h-[80vh] overflow-y-auto m-0 md:m-4">
-                  <div className="bg-gradient-to-r from-green-500/80 to-green-600/80 backdrop-blur-sm p-2 relative">
+              <div className="absolute inset-0 flex items-end md:items-center justify-center z-20 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                <div className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl max-w-2xl w-full md:max-h-[80vh] overflow-y-auto m-0 md:m-4">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 relative">
                     <button
                       onClick={hideResultOverlay}
-                      className="absolute top-2 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-all"
+                      className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-all"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                     <div className="flex items-center gap-4">
+                      <div className="bg-white rounded-full p-3">
+                        <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">Checkin thành công!</h3>
+                        <h3 className="text-2xl font-bold text-white">Checkin thành công!</h3>
+                        <p className="text-green-100 text-sm">Thông tin sẽ tự động ẩn sau 5 giây</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-1">
+                  {/* Content */}
+                  <div className="p-6">
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-1">
-                        <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg p-1">
-                          <div className="text-sm text-white/80 mb-1">Nhân viên</div>
-                          <div className="text-xl font-bold text-white">{result.user || result.user_name}</div>
+                      {/* Thông tin */}
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="text-sm text-gray-500 mb-1">Nhân viên</div>
+                          <div className="text-xl font-bold text-gray-800">{result.user || result.user_name}</div>
                         </div>
                         
                         {result.employee_id && (
-                          <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg p-1">
-                            <div className="text-sm text-white/80 mb-1">Mã nhân viên</div>
-                            <div className="text-lg font-semibold text-white">{result.employee_id}</div>
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-sm text-gray-500 mb-1">Mã nhân viên</div>
+                            <div className="text-lg font-semibold text-gray-800">{result.employee_id}</div>
                           </div>
                         )}
                         
-                        <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg p-1">
-                          <div className="text-sm text-white/80 mb-1">Trạng thái</div>
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="text-sm text-gray-500 mb-1">Trạng thái</div>
                           <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
                             (result.type || result.action) === 'check_in' || (result.type || result.action) === 'checkin' 
                               ? 'bg-green-100 text-green-800' 
@@ -498,30 +439,31 @@ const Checkin = () => {
                           </span>
                         </div>
                         
-                        <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg p-1">
-                          <div className="text-sm text-white/80 mb-1">Thời gian</div>
-                          <div className="text-lg font-semibold text-white">{result.time || formatTime(result.timestamp)}</div>
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="text-sm text-gray-500 mb-1">Thời gian</div>
+                          <div className="text-lg font-semibold text-gray-800">{result.time || formatTime(result.timestamp)}</div>
                         </div>
                         
                         {result.message && (
-                          <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 rounded-lg p-1">
-                            <div className="text-sm text-blue-200 mb-1">Thông báo</div>
-                            <div className="text-base font-medium text-white">{result.message}</div>
+                          <div className="bg-blue-50 rounded-lg p-4">
+                            <div className="text-sm text-blue-600 mb-1">Thông báo</div>
+                            <div className="text-base font-medium text-gray-800">{result.message}</div>
                           </div>
                         )}
                         
                         {result.duration && (
-                          <div className="bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 rounded-lg p-4">
-                            <div className="text-sm text-purple-200 mb-1">Thời gian làm việc</div>
-                            <div className="text-lg font-semibold text-white">{result.duration}</div>
+                          <div className="bg-purple-50 rounded-lg p-4">
+                            <div className="text-sm text-purple-600 mb-1">Thời gian làm việc</div>
+                            <div className="text-lg font-semibold text-gray-800">{result.duration}</div>
                           </div>
                         )}
                       </div>
 
+                      {/* Hình ảnh */}
                       {capturedImageUrl && result.user_image && (
-                        <div className="space-y-1">
-                          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/30 overflow-hidden">
-                            <div className="bg-gradient-to-r from-blue-500/60 to-blue-600/60 backdrop-blur-sm px-3 py-2">
+                        <div className="space-y-4">
+                          <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-2">
                               <p className="text-white font-medium text-sm text-center">Ảnh đăng ký</p>
                             </div>
                             <div className="p-3">
@@ -533,8 +475,8 @@ const Checkin = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/30 overflow-hidden">
-                            <div className="bg-gradient-to-r from-green-500/60 to-green-600/60 backdrop-blur-sm px-3 py-2">
+                          <div className="bg-white rounded-xl border-2 border-green-200 overflow-hidden">
+                            <div className="bg-gradient-to-r from-green-500 to-green-600 px-3 py-2">
                               <p className="text-white font-medium text-sm text-center">Ảnh vừa chụp</p>
                             </div>
                             <div className="p-3">
@@ -553,6 +495,7 @@ const Checkin = () => {
               </div>
             )}
 
+            {/* Manual Checkin Button */}
             {!autoScanEnabled && (
               <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
                 <button
@@ -578,7 +521,8 @@ const Checkin = () => {
               </div>
             )}
           </div>
-        </div>
+        )}
+      </div>
       
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
